@@ -29,7 +29,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=db.yegabsbaibufjizjsmvi.supabase.co;Database=postgres;Username=postgres;Password=Password@13579;SSL Mode=Require;Trust Server Certificate=true");
+        => optionsBuilder.UseNpgsql("Host=db.zmoyjzbgyujeyxgvdzku.supabase.co;Database=postgres;Username=postgres;Password=V2ludGVyQDIwMjUK@;SSL Mode=Require;Trust Server Certificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,40 +54,47 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("Category_pkey");
+            entity.HasKey(e => e.Id).HasName("category_pkey");
 
             entity.ToTable("Category", "ecommerce_store");
 
-            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.Description).HasColumnName("description");
         });
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("Order_pkey");
+            entity.HasKey(e => e.Id).HasName("order_pkey");
 
             entity.ToTable("Order", "ecommerce_store");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Order_CustomerId_fkey");
+                .HasConstraintName("order_CustomerId_fkey");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.ProductId)
+                .HasConstraintName("Order_ProductId_fkey");
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.Status)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Order_Status_fkey");
+                .HasConstraintName("order_status_fkey");
         });
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("OrderStatus_pkey");
+            entity.HasKey(e => e.Id).HasName("orderstatus_pkey");
 
             entity.ToTable("OrderStatus", "ecommerce_store");
 
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
             entity.Property(e => e.Status).HasColumnType("character varying");
         });
 
@@ -97,29 +104,31 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Product", "ecommerce_store");
 
-            entity.HasIndex(e => e.Id, "Product_Id_key").IsUnique();
-
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Name).HasMaxLength(200);
-            entity.Property(e => e.Price).HasPrecision(18, 2);
+            entity.Property(e => e.Name).HasColumnType("character varying");
 
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Product_CategoryId_fkey");
+                .HasConstraintName("product_categoryid_fkey");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("User_pkey");
+            entity.HasKey(e => e.Id).HasName("user_pkey");
 
             entity.ToTable("User", "ecommerce_store");
 
-            entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
+            entity.HasIndex(e => e.Email, "user_email_key").IsUnique();
 
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
             entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.Email).HasMaxLength(150);
-            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Email).HasColumnType("character varying");
+            entity.Property(e => e.Name).HasColumnType("character varying");
+            entity.Property(e => e.Passwordhash).HasColumnName("passwordhash");
 
             entity.HasOne(d => d.RoleNavigation).WithMany(p => p.Users)
                 .HasForeignKey(d => d.Role)
@@ -129,9 +138,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("Role_pkey");
+            entity.HasKey(e => e.Id).HasName("UserRole_pkey");
 
             entity.ToTable("UserRole", "ecommerce_store");
+
+            entity.Property(e => e.Id).HasColumnName("id");
         });
 
         OnModelCreatingPartial(modelBuilder);
